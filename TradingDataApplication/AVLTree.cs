@@ -8,6 +8,12 @@ namespace TradingDataApplication
 {
     class AVLTree<T> : BSTree<T> where T : IComparable
     {
+        public void updateItem(string oldName, T updated)
+        {
+            RemoveItem(oldName);
+            InsertItem(updated);
+        }
+
         public new void InsertItem(T item)
         {
             insertItem(item, ref root);
@@ -60,33 +66,18 @@ namespace TradingDataApplication
             }
         }
 
-        // EXTRA OVERLOADED WITH STRINGS
-
-        public T GetItem(String item)
+        public T GetItem(T item)
         {
             return GetItem(item, ref root);
         }
 
-        private T GetItem(String item, ref Node<T> root)
+        private T GetItem(T item, ref Node<T> root)
         {
             if (root != null) {
                 if (item.ToString().CompareTo(root.Data.ToString()) == 0) return root.Data;
                 else if (item.ToString().CompareTo(root.Data.ToString()) < 0) return GetItem(item, ref root.Left);
                 else if (item.ToString().CompareTo(root.Data.ToString()) > 0) return GetItem(item, ref root.Right);
             } return default(T);
-        }
-
-        public Boolean Contains(String item)
-        {
-            return contains(item, ref root);
-        }
-
-        private Boolean contains(String item, ref Node<T> root)
-        {
-            if (root != null) {
-                if (item.CompareTo(root.Data.ToString()) == 0) return true;
-                else if (item.CompareTo(root.Data.ToString()) < 0 | (item.CompareTo(root.Data.ToString()) > 0)) return contains(item, ref root.Left) | contains(item, ref root.Right);
-            } return false;
         }
 
         public void RemoveItem(String item)
@@ -96,8 +87,6 @@ namespace TradingDataApplication
 
         public void removeItem(String item, ref Node<T> tree)
         {
-            if (Contains(item))
-            {
                 if (tree != null)
                 {
                     if (item.CompareTo(tree.Data.ToString()) < 0)
@@ -126,7 +115,6 @@ namespace TradingDataApplication
                         }
                     }
                 }
-            }
         }
     }
 }

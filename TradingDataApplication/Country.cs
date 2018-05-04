@@ -24,6 +24,17 @@ namespace TradingDataApplication
             this.MainTradePartners = mainTradePartners;
         }
 
+        // Constructer to be used to compare only country names
+        public Country(string countryName)
+        {
+            this.CountryName = countryName;
+            this.GpdGrowth = 0;
+            this.Inflation = 0;
+            this.TradeBalance = 0;
+            this.HdiRanking = 0;
+            this.MainTradePartners = new string[0];
+        }
+
         public string CountryName { get => countryName; set => countryName = value; }
         public float GpdGrowth { get => gpdGrowth; set => gpdGrowth = value; }
         public float Inflation { get => inflation; set => inflation = value; }

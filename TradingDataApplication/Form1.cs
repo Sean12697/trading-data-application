@@ -23,85 +23,115 @@ namespace TradingDataApplication
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Program.csvToAVLTree(ref Countries, "countries.csv");
+            setup("countries.csv"); // Used to intially load the form, but to also load for a new csv file
+        }
+
+        private void setup(string file)
+        {
+            Program.csvToAVLTree(ref Countries, file);
             Program.setAvlData(lblInfo, Countries);
-            Program.showCountries("", listBoxCountries, Countries);
-            setBiggestTradingPartner();
+            Program.showCountries("", listBoxCountries, Countries, checkBoxTradingPartner);
+            Program.setBiggestTradingPartner(ref Countries, txtNameTrade, txtGpdTrade, txtGpdTradeSum, txtInflationTrade, txtTradeBalanceTrade, txtHdiTrade, listBoxTrade);
         }
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            Program.showCountries(txtSearch.Text, listBoxCountries, Countries);
+            Program.showCountries(txtSearch.Text, listBoxCountries, Countries, checkBoxTradingPartner);
         }
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            Program.showCountries(txtSearch.Text, listBoxCountries, Countries);
+            Program.showCountries(txtSearch.Text, listBoxCountries, Countries, checkBoxTradingPartner);
         }
 
         private void listBoxCountries_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Country c = Countries.GetItem((String)listBoxCountries.SelectedItem);
-            txtName.Text = c.CountryName;
-            txtGpdGrowth.Text = c.GpdGrowth.ToString();
-            txtInflation.Text = c.Inflation.ToString();
-            txtTradeBalance.Text = c.TradeBalance.ToString();
-            txtHdiRanking.Text = c.HdiRanking.ToString();
-            listBoxTradingPartners.Items.Clear();
-            foreach (string s in c.MainTradePartners) listBoxTradingPartners.Items.Add(s);
+            Program.updateCountryTextBoxes(ref Countries, listBoxCountries, txtName, txtGpdGrowth, txtInflation, txtTradeBalance, txtHdiRanking, listBoxTradingPartners, addTradePartner);
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            Country c = Countries.GetItem((String)listBoxCountries.SelectedItem);
-            Countries.RemoveItem((String)listBoxCountries.SelectedItem);
-            Program.setAvlData(lblInfo, Countries);
-            txtSearch.Text = "";
-            Program.showCountries(txtSearch.Text, listBoxCountries, Countries);
-            setBiggestTradingPartner();
+            Program.deleteCountry(ref Countries, listBoxCountries, lblInfo, txtSearch, checkBoxTradingPartner);
+            Program.clearTextBoxes(txtName, txtGpdGrowth, txtInflation, txtTradeBalance, txtHdiRanking, listBoxTradingPartners);
+            Program.setBiggestTradingPartner(ref Countries, txtNameTrade, txtGpdTrade, txtGpdTradeSum, txtInflationTrade, txtTradeBalanceTrade, txtHdiTrade, listBoxTrade);
         }
 
-        private void txtName_Enter(object sender, EventArgs e)
+        private void checkBoxTradingPartner_CheckedChanged(object sender, EventArgs e)
         {
-            //Country c = Countries.GetItem((String)listBoxCountries.SelectedItem);
-            //string oldName = c.CountryName;
-            //c.CountryName = txtName.Text;
-            //Countries.RemoveItem(oldName);
-            //Countries.InsertItem(c);
-            //Program.showCountries(txtSearch.Text, listBoxCountries, Countries);
+            Program.showCountries(txtSearch.Text, listBoxCountries, Countries, checkBoxTradingPartner);
         }
 
-        private void setBiggestTradingPartner()
+        private void txtName_KeyUp(object sender, KeyEventArgs e)
         {
-            string[] CountriesText = Program.getCountries(Countries);
+            updateCountry("Name", ref e);
+        }
 
-            string countryWithBiggestTradePotential = "";
-            float countryWithBiggestTradePotentialGPD = 0;
+        private void txtGpdGrowth_KeyUp(object sender, KeyEventArgs e)
+        {
+            updateCountry("GPD", ref e);
+        }
 
-            foreach (string s in CountriesText)
+        private void txtInflation_KeyUp(object sender, KeyEventArgs e)
+        {
+            updateCountry("Inflation", ref e);
+        }
+
+        private void txtTradeBalance_KeyUp(object sender, KeyEventArgs e)
+        {
+            updateCountry("TradeBalance", ref e);
+        }
+
+        private void txtHdiRanking_KeyUp(object sender, KeyEventArgs e)
+        {
+            updateCountry("HdiRanking", ref e);
+        }
+
+        private void updateCountry(string updating, ref KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) // if the enter key was pressed in a country data field
             {
-                Country x = Countries.GetItem(s);
-                float total = 0;
-                // create to function
-                foreach (string countr in x.MainTradePartners) if (Countries.GetItem(countr) != null) total += Countries.GetItem(countr).GpdGrowth;
-                if (total > countryWithBiggestTradePotentialGPD)
-                {
-                    countryWithBiggestTradePotentialGPD = total;
-                    countryWithBiggestTradePotential = x.CountryName;
-                }
+                // updating to be used in a switch case
+                Program.updateCountry(ref Countries, updating, listBoxCountries, txtName, txtGpdGrowth, txtInflation, txtTradeBalance, txtHdiRanking);
+                Program.showCountries(txtSearch.Text, listBoxCountries, Countries, checkBoxTradingPartner); // display results
+                // update biggest trading partner if changed 
+                Program.setBiggestTradingPartner(ref Countries, txtNameTrade, txtGpdTrade, txtGpdTradeSum, txtInflationTrade, txtTradeBalanceTrade, txtHdiTrade, listBoxTrade);
+                e.Handled = true;
             }
+        }
 
-            Country c = Countries.GetItem(countryWithBiggestTradePotential);
-            txtNameTrade.Text = c.CountryName;
-            txtGpdTrade.Text = c.GpdGrowth.ToString();
-            float gpdTemp = 0;
-            foreach (string countr in c.MainTradePartners) if (Countries.GetItem(countr) != null) gpdTemp += Countries.GetItem(countr).GpdGrowth;
-            txtGpdTradeSum.Text = gpdTemp.ToString();
-            txtInflationTrade.Text = c.Inflation.ToString();
-            txtTradeBalanceTrade.Text = c.TradeBalance.ToString();
-            txtHdiTrade.Text = c.HdiRanking.ToString();
-            listBoxTrade.Items.Clear();
-            foreach (string s in c.MainTradePartners) listBoxTrade.Items.Add(s);
+        private void listBoxTradingPartners_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                // Storing needed country values
+                Country mainCountry = Countries.GetItem(new Country((String)listBoxCountries.SelectedItem));
+                String tradingCountryName = (String)listBoxTradingPartners.SelectedItem;
+                Country tradingCountry = Countries.GetItem(new Country(tradingCountryName));
+                // Removing trading for both countries
+                mainCountry.MainTradePartners = Program.removedCountryPartner(mainCountry.MainTradePartners, tradingCountryName);
+                tradingCountry.MainTradePartners = Program.removedCountryPartner(tradingCountry.MainTradePartners, mainCountry.CountryName);
+                // Update Trading Partner Listview
+                Program.updateTradePartnersList(mainCountry, listBoxTradingPartners);
+                e.Handled = true;
+            }
+        }
+
+        private void btnAddTradePartner_Click(object sender, EventArgs e)
+        {
+            Program.addTradePartner(Countries, addTradePartner, listBoxCountries); // Blackbox function to add
+            Program.updateAddTradePartners(Countries, addTradePartner, listBoxCountries); // remove it as an option to add again  
+            Program.updateCountryTextBoxes(ref Countries, listBoxCountries, txtName, txtGpdGrowth, txtInflation, txtTradeBalance, txtHdiRanking, listBoxTradingPartners, addTradePartner); // shows new trade partner
+            Program.setBiggestTradingPartner(ref Countries, txtNameTrade, txtGpdTrade, txtGpdTradeSum, txtInflationTrade, txtTradeBalanceTrade, txtHdiTrade, listBoxTrade); // could make the country the biggest potental of trade
+        }
+
+        private void addTradePartner_TextChanged(object sender, EventArgs e)
+        {
+            btnAddTradePartner.Enabled = (Program.getCountries(Countries).Contains((string)addTradePartner.SelectedItem));
+        }
+
+        private void loadCSVToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            setup("countries.csv");
         }
     }
 }
